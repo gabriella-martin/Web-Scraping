@@ -20,8 +20,9 @@ def find_jobs():
         time.sleep(2)
         job.click()
         time.sleep(2)
-        description = driver.find_element(by=By.XPATH, value = '//span[@class="HBvzbc"]')
-        print(description.text)
+        find_description = (driver.find_element(by=By.XPATH, value = '//span[@class="HBvzbc"]')).get_attribute('innerText')
+        print(find_description)
+       
 
 
 accept_cookies()
