@@ -1,6 +1,0 @@
-Goals:
-    Scrape Google job website
-    Retrieve job information for particular job search
-    Retrieve job description
-    Find common technologies throughout all job postings
-    Showcase most important technologies

@@ -8,8 +8,25 @@ driver.get(URL)
 
 time.sleep(2)
 
+
+
 def accept_cookies():
     accept_cookies_button = driver.find_element(by=By.XPATH, value ='//button[@aria-label="Accept all"]')
     accept_cookies_button.click()
 
+def find_jobs():
+    job_preview_button = driver.find_elements(by=By.XPATH, value = '//li[@class="iFjolb gws-plugins-horizon-jobs__li-ed"]')
+    for job in job_preview_button:
+        time.sleep(2)
+        job.click()
+        time.sleep(2)
+        description = driver.find_element(by=By.XPATH, value = '//span[@class="HBvzbc"]')
+        print(description.text)
+
+
 accept_cookies()
+
+time.sleep(4)
+
+find_jobs()
+
