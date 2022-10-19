@@ -1,7 +1,14 @@
-from ast import Num
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
+import openpyxl
+from openpyxl import Workbook, load_workbook
+
+wb = load_workbook('Job Data.xlsx')
+ws = wb.active
+ws.append(['Gab', 'is', 'gay'])
+wb.save('Job Data.xlsx')
 
 driver = webdriver.Chrome()
 URL = 'https://www.google.com/search?q=junior+%22python%22+&oq=junior&aqs=chrome.0.69i59j46i512j0i131i433i512j46i131i175i199i433i512j0i433i512j69i61j69i60j69i61.1164j0j7&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwj2nObB3uv6AhWMQkEAHSstDrsQutcGKAF6BAgKEAY&sxsrf=ALiCzsYQI5IhM4tuqlfkEd3fJWNNOEUUmw:1666163444131#htivrt=jobs&fpstate=tldetail&htilrad=24.1401&htichips=city:8_MXt1sbdkgKsgA5eS6RSQ%3D%3D&htischips=city;8_MXt1sbdkgKsgA5eS6RSQ%3D%3D:London&htidocid=Ad8ENHx4r_AAAAAAAAAAAA%3D%3D'
@@ -22,11 +29,14 @@ def accept_cookies():
     accept_cookies_button.click()
     time.sleep(2)
 
+job_info = []
 
 def get_job_info():
     job_info_list = (driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]'))
     for job in job_info_list:
-        print(job.text)
+        job_text = job.text
+        job_info.append(job_text)
+
         
 
 
@@ -40,13 +50,18 @@ def get_description():
 
 
 accept_cookies()
-
-'''time.sleep(10)
-
-get_job_info()'''
-
 specify_location()
 
-'''get_description()
+time.sleep(10)
 
-print(len(description_list))'''
+get_job_info()
+
+
+
+get_description()
+
+my_list = (job_info[0])
+
+split_list = my_list.splitlines()
+
+print(split_list)
