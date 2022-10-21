@@ -16,11 +16,23 @@ class Scraper():
         self.job_links = []
 
         #initialised the scraper
+        self.job_search_query = ''
+        self.job_search = input('What jobs would you like to search for? ').split()
+        self.job_location = input('What location would you like to search in? ').split()
+        self.job_radius = input('What radius would you like to search with (miles), input either 2, 5, 15, 30, 60 or 200 ')
+
+        for word in self.job_search:
+            self.job_search_query = self.job_search_query + '+' + word
+
+        for word in self.job_location:
+            self.job_search_query = self.job_search_query + '+' + word
+
 
         self.driver = webdriver.Chrome()
-        self.URL = 'https://www.google.com/search?q=junior+%22python%22+&oq=junior&aqs=chrome.0.69i59j46i512j0i131i433i512j46i131i175i199i433i512j0i433i512j69i61j69i60j69i61.1164j0j7&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwj2nObB3uv6AhWMQkEAHSstDrsQutcGKAF6BAgKEAY&sxsrf=ALiCzsYQI5IhM4tuqlfkEd3fJWNNOEUUmw:1666163444131#htivrt=jobs&fpstate=tldetail&htilrad=24.1401&htichips=city:8_MXt1sbdkgKsgA5eS6RSQ%3D%3D&htischips=city;8_MXt1sbdkgKsgA5eS6RSQ%3D%3D:London&htidocid=Ad8ENHx4r_AAAAAAAAAAAA%3D%3D'
+        self.URL = 'https://www.google.com/search?q=' + self.job_search_query + '&oq=' + self.job_search_query + '&aqs=chrome.0.69i59j69i57j0i512l3j69i60j69i61j69i60.2372j0j4&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwiSnLaS4vD6AhXASkEAHbGeCmIQutcGKAF6BAgPEAY&sxsrf=ALiCzsYBgFpn29JiT-bmDitHpZhnSS8_KA:1666336217212#fpstate=tldetail&htivrt=jobs&htidocid=yMtX4QFL-SgAAAAAAAAAAA%3D%3D'
         self.driver.get(self.URL)
-        
+
+
     def accept_cookies(self):
 
         #find and click accept cookies button
@@ -39,7 +51,7 @@ class Scraper():
 
         #chose radius of 15 miles
 
-        fifteen_miles = self.driver.find_element(by=By.XPATH, value = '//div[@data-display-value="15 mi"]')
+        fifteen_miles = self.driver.find_element(by=By.XPATH, value = '//div[@data-display-value="' + self.job_radius + ' mi"]')
         fifteen_miles.click()
     
     def get_job_info(self):
@@ -85,11 +97,11 @@ class Scraper():
         self.accept_cookies()
         self.specify_location()
         time.sleep(10)
-        self.get_links()
+        ''''self.get_links()
         self.get_job_info()
         self.get_description()
         self.pickle()
-        print('Done')
+        print('Done')'''
 
     def pickle(self):
         with open('info_list', 'wb') as il:
