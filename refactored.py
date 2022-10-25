@@ -64,6 +64,7 @@ class Scraper():
             self.job_info.append(job_text)
             time.sleep(2)
         for each_job in self.job_info:
+            time.sleep(0.5)
             if len(each_job[0]) == 1: #logo compared to no logo
                 each_job = each_job[1:]
                 each_job = each_job[:4]
@@ -76,12 +77,21 @@ class Scraper():
     def get_description(self):
             description_1 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="HBvzbc"]')
             for desc_1 in description_1:
-                first_half_of_description = str((desc_1.get_attribute('innerText')))
+                first_half_of_description = desc_1.get_attribute('innerText')
                 self.job_description.append(first_half_of_description)
+                time.sleep(0.5)
+
+            first_job_exception_locator = self.driver.find_element(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
+            first_job_exception_description = first_job_exception_locator.get_attribute('innerText')
+            self.job_description[-1] = self.job_description[-1] + ' ' + first_job_exception_description
+            
+
             description_2 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="WbZuDe"]')
-            for count, value in enumerate(description_2):
-                second_half_of_description = str(value.get_attribute('innertext'))
-                self.job_description[count] = str(self.job_description[count]) + ' ' + second_half_of_description
+            
+            for count, desc_2 in enumerate(description_2):
+                second_half_of_description = desc_2.get_attribute('innerText')
+                self.job_description[count] = self.job_description[count] + ' ' + second_half_of_description
+
             return(self.job_description)
            
             
@@ -97,11 +107,11 @@ class Scraper():
         self.accept_cookies()
         self.specify_location()
         time.sleep(10)
-        ''''self.get_links()
+        self.get_links()
         self.get_job_info()
         self.get_description()
         self.pickle()
-        print('Done')'''
+        print('Done')
 
     def pickle(self):
         with open('info_list', 'wb') as il:
