@@ -71,11 +71,13 @@ class Scraper():
                 self.job_description.append(first_half_of_description)
                 time.sleep(0.5)
 
-            first_job_exception_locator = self.driver.find_element(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
-            first_job_exception_description = first_job_exception_locator.get_attribute('innerText')
-            self.job_description[-1] = self.job_description[-1] + ' ' + first_job_exception_description
+            first_job_exception_locator = self.driver.find_elements(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
+            if len(first_job_exception_locator) != 0:
+                for job in first_job_exception_locator:
+                    first_job_exception_description = first_job_exception_locator.get_attribute('innerText')
+                    self.job_description[-1] = self.job_description[-1] + ' ' + first_job_exception_description
+                    break
             
-
             description_2 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="WbZuDe"]')
             
             for count, desc_2 in enumerate(description_2):
@@ -205,7 +207,7 @@ class DataAnalysis():
                     if skill_query in desc:
                         count += 1
                 if count > 1:
-                    percentage_of_skill = (count/len(self.list_of_descriptions))*100
+                    percentage_of_skill = round((count/len(self.list_of_descriptions))*100)
                     self.skill_query.append(skill_query)
                     self.percentages_of_skill.append(percentage_of_skill)
         return(self.skill_query, self.percentages_of_skill)
@@ -234,5 +236,5 @@ c.analyse_data()
 
 '''to fix
         scroller so can do headless
-        finish data analysis
+   
         if first desc is not two pieces code not break'''
