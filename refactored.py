@@ -74,7 +74,7 @@ class Scraper():
             first_job_exception_locator = self.driver.find_elements(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
             if len(first_job_exception_locator) != 0:
                 for job in first_job_exception_locator:
-                    first_job_exception_description = first_job_exception_locator.get_attribute('innerText')
+                    first_job_exception_description = job.get_attribute('innerText')
                     self.job_description[-1] = self.job_description[-1] + ' ' + first_job_exception_description
                     break
             
@@ -157,7 +157,7 @@ class DataProcessing():
 
     def edit_excel(self, job_info_formatted):
         headers = ['Job Name', 'Company Name', 'Location', 'Link to Apply', 'Description']
-        workbook_name = 'Job Data 2.xlsx'
+        workbook_name = 'Job Data.xlsx'
         wb = Workbook()
         page = wb.active
         page.title = 'Python Jobs'
@@ -237,4 +237,4 @@ c.analyse_data()
 '''to fix
         scroller so can do headless
    
-        if first desc is not two pieces code not break'''
+       '''
