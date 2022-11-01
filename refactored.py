@@ -9,16 +9,20 @@ import time
 
 class Scraper():
 
+    '''This is a class used to scrape information of the google jobs website'''
+
     def __init__(self):
-      
-        #the empty lists the data will go in
+
+        '''First we initialise all the information lists we want to retrieve,
+        then we ask the user to specify their search query following the options allowed on Google jobs
+        this is then formatted to match the url that google jobs requires
+        then the driver is started with the particular url'''
 
         self.job_info = [] 
         self.job_info_formatted = []
         self.job_description = []
         self.job_links = []
 
-        #initialised the scraper
         self.job_search_query = ''
         self.job_search = input('What jobs would you like to search for? ').split()
         self.job_location = input('What location would you like to search in? ').split()
@@ -37,7 +41,7 @@ class Scraper():
 
     def accept_cookies(self):
 
-        #find and click accept cookies button
+        '''this function locates and clicks the accept cookies button'''
 
         accept_cookies_button = self.driver.find_element(by=By.XPATH, value ='//button[@aria-label="Accept all"]')
         accept_cookies_button.click()
@@ -45,50 +49,65 @@ class Scraper():
         
     def specify_location(self):
 
-        #find and click location option tab (already routed to London)
+        '''finds location button and clicks to reveal the radius options, 
+        then takes user specified radius and clicks on this option to reveal the specific job postings'''
 
         location_button = self.driver.find_element(by=By.XPATH, value = '//span[@jsname="ZwfL4c" and @class="cS4btb is1c5b" and @data-facet="city"]')
         location_button.click()
         time.sleep(2)
 
-        #chose radius of 15 miles
-
-        fifteen_miles = self.driver.find_element(by=By.XPATH, value = '//div[@data-display-value="' + self.job_radius + ' mi"]')
-        fifteen_miles.click()
+        miles_specified = self.driver.find_element(by=By.XPATH, value = '//div[@data-display-value="' + self.job_radius + ' mi"]')
+        miles_specified.click()
     
     def get_job_info(self):
 
-        #retrieve basic job info in a list
+        '''retrieves a list of basic job information for each job posting,
+        each item in the list is another job posting and is of the format;
+        (Nothing (as has picture of company logo) OR First letter of company name \n 
+        Job Name \n Company Name \n Location \n via Recruiters \n When Posted \n Salary \n Hours
+        So the text is then split along these \n and appended to our job info list'''
 
         job_info_list = (self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]'))
         for job in job_info_list:
-            job_text = job.text.splitlines() #each item in list has format Job Name \n Company Name \n Location \n via Recruiters \n When Posted \n Salary \n Hours
+            job_text = job.text.splitlines() 
             self.job_info.append(job_text)
         return self.job_info
                  
     def get_description(self):
-            description_1 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="HBvzbc"]')
-            for desc_1 in description_1:
-                first_half_of_description = desc_1.get_attribute('innerText')
-                self.job_description.append(first_half_of_description)
-                time.sleep(0.5)
-
-            first_job_exception_locator = self.driver.find_elements(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
-            if len(first_job_exception_locator) != 0:
-                for job in first_job_exception_locator:
-                    first_job_exception_description = job.get_attribute('innerText')
-                    self.job_description[-1] = self.job_description[-1] + ' ' + first_job_exception_description
-                    break
+        
+        '''The first part of this function is dealing with the first job posting anomoly,
+        as this job is the only one actually loaded when the webpage is opened, 
+        it therefore checks whether this initial description is split into two pieces and if it is
+        retrieves both parts and combines them and adds them to the last item in the list - as this 
+        is where the first description is added to (this discrepancy is sorted later when formatting)
+        
+        Next, the remainder of the descriptions are retrieves, if they are split in two web elements
+        this function will combine the two and add them to the complete description list'''
             
-            description_2 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="WbZuDe"]')
-            
-            for count, desc_2 in enumerate(description_2):
-                second_half_of_description = desc_2.get_attribute('innerText')
-                self.job_description[count] = self.job_description[count] + ' ' + second_half_of_description
+        first_job_exception_locator = self.driver.find_elements(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
+        if len(first_job_exception_locator) != 0:
+            for job in first_job_exception_locator:
+                first_job_exception_description = job.get_attribute('innerText')
+                self.job_description[-1] = self.job_description[-1] + ' ' + first_job_exception_description
+                break
 
-            return(self.job_description)
+        description_part_1 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="HBvzbc"]')
+        for desc_1 in description_part_1:
+            first_half_of_description = desc_1.get_attribute('innerText')
+            self.job_description.append(first_half_of_description)
+            time.sleep(0.5)
+
+        description_part_2 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="WbZuDe"]')   
+        for count, desc_2 in enumerate(description_part_2):
+            second_half_of_description = desc_2.get_attribute('innerText')
+            self.job_description[count] = self.job_description[count] + ' ' + second_half_of_description
+
+        return(self.job_description)
                       
     def get_links(self):
+
+        '''this locates all the links to apply and retrieves the links and appends them to our link list'''
+
         find_link_location = self.driver.find_elements(by=By.XPATH, value = '//span[@class="DaDV9e"]')
         for location in find_link_location:
             a_tag = location.find_element(by=By.TAG_NAME, value = 'a')
@@ -97,6 +116,10 @@ class Scraper():
         return(self.job_links)
 
     def pickle(self):
+
+        '''This allows a easy transfer of these lists to the next class so to avoid overdependencies 
+        between the classes - 'saves' these lists to use in the following classes'''
+
         with open('info_list', 'wb') as il:
             pickle.dump(self.job_info, il)
 
@@ -107,6 +130,9 @@ class Scraper():
             pickle.dump(self.job_links, ll)
 
     def scrape(self):
+
+        '''This function runs the entire scraping process'''
+
         self.accept_cookies()
         self.specify_location()
         time.sleep(10)
@@ -118,7 +144,14 @@ class Scraper():
 
 class DataProcessing():
 
+    '''This is a class used to process and format the data and resolve any issues within the data'''
+
     def __init__(self):
+
+        '''The initialiser first unpickles the lists from the scraper class 
+        and also initialises the full formatted job info list that will include all the data including
+        the links, descriptions all in one list where each item is a list of all the info for each job posting'''
+
         with open('info_list', 'rb') as il:
             self.job_info = pickle.load(il)
 
@@ -131,9 +164,20 @@ class DataProcessing():
         self.job_info_formatted = []
 
     def clean_job_info_list(self):
+
+        '''This function sorts the info data - solves the following two problems:
+
+        - some companies without a picture logo google instead puts the first character of the company name 
+        and this is retrieved as text and is futile for us. Thankfully this is the first item retrieved and 
+        so we can check whether the first item has a length of 1 and if it does remove it
+        
+        - the optional categories for each job postings like when posted, salary, whether it is WFH and 
+        whether it is full or part time - the majority of jobs are missing most of this data so we want to 
+        slice just the required fields so we don't have a mass of missing data'''
+
         for each_job in self.job_info:
             
-            if len(each_job[0]) == 1: #logo compared to no logo
+            if len(each_job[0]) == 1: 
                 each_job = each_job[1:]
                 each_job = each_job[:4]
                 self.job_info_formatted.append(each_job)
@@ -144,11 +188,22 @@ class DataProcessing():
         return(self.job_info_formatted)
     
     def shift_link_and_description_data_left(self):
+
+        '''for some reason both the link and description list seemed to have the first job posting appear
+        at the end of the list, the second job posting was the first item of the list etc, so the list needs
+        to be moved to the left by one to ensure the data matches the correct job posting - this function
+        achieves this'''
+
         self.description_list = [self.description_list[-1]] + self.description_list[:-1]
         self.link_list = [self.link_list[-1]] + self.link_list[:-1]
         return(self.description_list, self.link_list)
 
     def collate_all_data_in_one_list(self, info_list_formatted, link_and_desc_lists):
+
+        '''this function creates one big nested list of all the job information - it creates a 
+        nested list of the format of [[job name 1, company name 1, ... , link 1, desc 1], [job name 2, 
+        company name 2, ... , link 2, desc 2]... '''
+
         for count, value in enumerate(self.description_list):
             self.job_info_formatted[count].append(value)
 
@@ -158,6 +213,9 @@ class DataProcessing():
         return self.job_info_formatted
 
     def edit_excel(self, job_info_formatted):
+
+        '''This function adds the data to an excel spreadsheet and correctly names each column'''
+
         headers = ['Job Name', 'Company Name', 'Location', 'Link to Apply', 'Description']
         workbook_name = 'Job Data.xlsx'
         wb = Workbook()
@@ -170,10 +228,16 @@ class DataProcessing():
         wb.save(filename = workbook_name)
 
     def pickle(self):
+
+        '''This function pickles this full job list for use in the data analysis class'''
+
         with open('full_info_list', 'wb') as fil:
             pickle.dump(self.job_info_formatted, fil)
 
     def sort_data(self):
+
+        '''This function calls the functions to complete the processing in the correct order'''
+
         info_list_formatted = self.clean_job_info_list()
         link_and_desc_lists = self.shift_link_and_description_data_left()
         info_list_formatted = self.collate_all_data_in_one_list(info_list_formatted, link_and_desc_lists)
@@ -182,7 +246,13 @@ class DataProcessing():
 
 class DataAnalysis():
 
+    '''This class enables data analysis to be done on the job descriptions and gain insight in to the job
+    market as a whole'''
+
     def __init__(self):
+
+        '''First opens the full formatted job list and initialises the lists needed to engage with the data 
+        in our analysis'''
 
         with open('full_info_list', 'rb') as fil:
             self.job_info_formatted = pickle.load(fil)
@@ -193,11 +263,23 @@ class DataAnalysis():
     
     def get_list_of_descriptions_only(self):
 
+        '''This function retrieves only the job descriptions into a new list as we want to analyse only
+        the descriptions'''
+
         for info in self.job_info_formatted:
             self.list_of_descriptions.append(info[4])
         return(self.list_of_descriptions)
 
     def find_prominance_of_skill(self,list_of_descriptions):
+
+        '''This function repeatedly asks the user for a particular skill, like 'AWS', it then searches each 
+        description and if the skill is found in the description a count is increased, once done this count
+        is then turned into a percentage of prominance of skill by taking the number of descriptions that the
+        skill appeared in and dividing by the total of the descriptions
+        
+        By specifying that the count must be >1 we remove any arbitrary skill searches from our final list.
+        Each sucessful search query and corresponding percentage of prominance is added to a list'''
+
         while True:
             skill_query = str(input('What skill would you like to search for? If you are done type quit ')).lower()
             if skill_query == 'quit':
@@ -212,26 +294,33 @@ class DataAnalysis():
                     percentage_of_skill = round((count/len(self.list_of_descriptions))*100)
                     self.skill_query.append(skill_query)
                     self.percentages_of_skill.append(percentage_of_skill)
+
         return(self.skill_query, self.percentages_of_skill)
 
     def make_skill_dictionary(self, skills_and_percentages):
+
+        '''This function takes both the skill queried list and percentages and creates a dictionary'''
+
         self.dictionary_of_skils_and_percentages = {self.skill_query[i]: self.percentages_of_skill[i] for i in range(len(self.skill_query))}
         print(self.dictionary_of_skils_and_percentages)
        
     def analyse_data(self):
+
+        '''This function compiles the entire data analysis process'''
+
         list_of_descriptions = self.get_list_of_descriptions_only()
         skills_and_percentages = self.find_prominance_of_skill(list_of_descriptions)
         self.make_skill_dictionary(skills_and_percentages)
          
-if __name__ == "__main___":
-    a = Scraper()
-    a.scrape()
 
-    b = DataProcessing()
-    b.sort_data()
+a = Scraper()
+a.scrape()
 
-    c = DataAnalysis()
-    c.analyse_data()
+b = DataProcessing()
+b.sort_data()
+
+c = DataAnalysis()
+c.analyse_data()
 
 
 
