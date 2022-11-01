@@ -1,8 +1,10 @@
+from openpyxl import Workbook
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from openpyxl import Workbook
-import time
+
 import pickle
+import time
+
 
 
 class Scraper():
@@ -93,16 +95,6 @@ class Scraper():
             link = a_tag.get_attribute('href')
             self.job_links.append(link)
         return(self.job_links)
-        
-    def scrape(self):
-        self.accept_cookies()
-        self.specify_location()
-        time.sleep(10)
-        self.get_links()
-        self.get_job_info()
-        self.get_description()
-        self.pickle()
-        print('Done')
 
     def pickle(self):
         with open('info_list', 'wb') as il:
@@ -113,6 +105,16 @@ class Scraper():
 
         with open('link_list', 'wb') as ll:
             pickle.dump(self.job_links, ll)
+
+    def scrape(self):
+        self.accept_cookies()
+        self.specify_location()
+        time.sleep(10)
+        self.get_links()
+        self.get_job_info()
+        self.get_description()
+        self.pickle()
+        print('Done')
 
 class DataProcessing():
 
@@ -167,16 +169,16 @@ class DataProcessing():
 
         wb.save(filename = workbook_name)
 
+    def pickle(self):
+        with open('full_info_list', 'wb') as fil:
+            pickle.dump(self.job_info_formatted, fil)
+
     def sort_data(self):
         info_list_formatted = self.clean_job_info_list()
         link_and_desc_lists = self.shift_link_and_description_data_left()
         info_list_formatted = self.collate_all_data_in_one_list(info_list_formatted, link_and_desc_lists)
         self.edit_excel(info_list_formatted)
         self.pickle()
-
-    def pickle(self):
-        with open('full_info_list', 'wb') as fil:
-            pickle.dump(self.job_info_formatted, fil)
 
 class DataAnalysis():
 
@@ -216,25 +218,21 @@ class DataAnalysis():
         self.dictionary_of_skils_and_percentages = {self.skill_query[i]: self.percentages_of_skill[i] for i in range(len(self.skill_query))}
         print(self.dictionary_of_skils_and_percentages)
        
-
     def analyse_data(self):
         list_of_descriptions = self.get_list_of_descriptions_only()
         skills_and_percentages = self.find_prominance_of_skill(list_of_descriptions)
         self.make_skill_dictionary(skills_and_percentages)
          
+if __name__ == "__main___":
+    a = Scraper()
+    a.scrape()
+
+    b = DataProcessing()
+    b.sort_data()
+
+    c = DataAnalysis()
+    c.analyse_data()
 
 
-a = Scraper()
-a.scrape()
-
-b = DataProcessing()
-b.sort_data()
-
-c = DataAnalysis()
-c.analyse_data()
 
 
-'''to fix
-        scroller so can do headless
-   
-       '''
