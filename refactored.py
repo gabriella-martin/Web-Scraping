@@ -1,6 +1,7 @@
 from openpyxl import Workbook
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 import pickle
 import time
@@ -34,8 +35,9 @@ class Scraper():
         for word in self.job_location:
             self.job_search_query = self.job_search_query + '+' + word
 
-
-        self.driver = webdriver.Chrome()
+        options = Options()
+        options.headless = True
+        self.driver = webdriver.Chrome(options=options, executable_path=r'chromedriver')
         self.URL = 'https://www.google.com/search?q=' + self.job_search_query + '&oq=' + self.job_search_query + '&aqs=chrome.0.69i59j69i57j0i512l3j69i60j69i61j69i60.2372j0j4&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwiSnLaS4vD6AhXASkEAHbGeCmIQutcGKAF6BAgPEAY&sxsrf=ALiCzsYBgFpn29JiT-bmDitHpZhnSS8_KA:1666336217212#fpstate=tldetail&htivrt=jobs&htidocid=yMtX4QFL-SgAAAAAAAAAAA%3D%3D'
         self.driver.get(self.URL)
 
@@ -59,6 +61,23 @@ class Scraper():
         miles_specified = self.driver.find_element(by=By.XPATH, value = '//div[@data-display-value="' + self.job_radius + ' mi"]')
         miles_specified.click()
     
+    def scroll_to_load(self):
+
+        all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
+        for i in all_job_postings:
+                self.driver.execute_script("arguments[0].scrollIntoView();", i)   
+                time.sleep(0.5)
+        
+        all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
+        for i in all_job_postings:
+                self.driver.execute_script("arguments[0].scrollIntoView();", i)
+                time.sleep(0.5)
+
+        all_job_postings.reverse()
+        for i in all_job_postings:
+            self.driver.execute_script("arguments[0].scrollIntoView();", i)
+            time.sleep(0.5)
+
     def get_job_info(self):
 
         '''retrieves a list of basic job information for each job posting,
@@ -68,7 +87,9 @@ class Scraper():
         So the text is then split along these \n and appended to our job info list'''
 
         job_info_list = (self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]'))
+        time.sleep(10)
         for job in job_info_list:
+            time.sleep(1)
             job_text = job.text.splitlines() 
             self.job_info.append(job_text)
         return self.job_info
@@ -84,6 +105,12 @@ class Scraper():
         Next, the remainder of the descriptions are retrieves, if they are split in two web elements
         this function will combine the two and add them to the complete description list'''
             
+        description_part_1 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="HBvzbc"]')
+        for desc_1 in description_part_1:
+            first_half_of_description = desc_1.get_attribute('innerText')
+            self.job_description.append(first_half_of_description)
+            time.sleep(0.5)
+
         first_job_exception_locator = self.driver.find_elements(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
         if len(first_job_exception_locator) != 0:
             for job in first_job_exception_locator:
@@ -91,11 +118,6 @@ class Scraper():
                 self.job_description[-1] = self.job_description[-1] + ' ' + first_job_exception_description
                 break
 
-        description_part_1 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="HBvzbc"]')
-        for desc_1 in description_part_1:
-            first_half_of_description = desc_1.get_attribute('innerText')
-            self.job_description.append(first_half_of_description)
-            time.sleep(0.5)
 
         description_part_2 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="WbZuDe"]')   
         for count, desc_2 in enumerate(description_part_2):
@@ -134,8 +156,11 @@ class Scraper():
         '''This function runs the entire scraping process'''
 
         self.accept_cookies()
+        time.sleep(5)
         self.specify_location()
         time.sleep(10)
+        self.scroll_to_load()
+        time.sleep(5)
         self.get_links()
         self.get_job_info()
         self.get_description()
@@ -260,6 +285,7 @@ class DataAnalysis():
         self.list_of_descriptions = []
         self.skill_query = []
         self.percentages_of_skill = []
+        self.sorted_dictionary_of_skills = {}
     
     def get_list_of_descriptions_only(self):
 
@@ -301,27 +327,42 @@ class DataAnalysis():
 
         '''This function takes both the skill queried list and percentages and creates a dictionary'''
 
-        self.dictionary_of_skils_and_percentages = {self.skill_query[i]: self.percentages_of_skill[i] for i in range(len(self.skill_query))}
-        print(self.dictionary_of_skils_and_percentages)
-       
+        self.dictionary_of_skills_and_percentages = {self.skill_query[i]: self.percentages_of_skill[i] for i in range(len(self.skill_query))}
+        return(self.dictionary_of_skills_and_percentages)
+
+    def order_dictionary(self, dictionary_of_skills_and_percentages):
+
+        '''This function takes the dictionary and orders in in descending order - so most important technologies
+        are seen first'''
+
+        ordered_values = sorted(self.dictionary_of_skills_and_percentages.values())
+        ordered_values.reverse()
+        for i in ordered_values:
+            for k in self.dictionary_of_skills_and_percentages.keys():
+                if self.dictionary_of_skills_and_percentages[k] == i:
+                    self.sorted_dictionary_of_skills[k] = dictionary_of_skills_and_percentages[k]
+        print(self.sorted_dictionary_of_skills)
+
     def analyse_data(self):
 
         '''This function compiles the entire data analysis process'''
 
         list_of_descriptions = self.get_list_of_descriptions_only()
         skills_and_percentages = self.find_prominance_of_skill(list_of_descriptions)
-        self.make_skill_dictionary(skills_and_percentages)
-         
+        dictionary_of_skills_and_percentages = self.make_skill_dictionary(skills_and_percentages)
+        self.order_dictionary(dictionary_of_skills_and_percentages)
+
+    
 
 a = Scraper()
 a.scrape()
 
 b = DataProcessing()
 b.sort_data()
-
+'''
 c = DataAnalysis()
 c.analyse_data()
-
+'''
 
 
 
