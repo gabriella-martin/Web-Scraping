@@ -35,9 +35,14 @@ class Scraper():
         for word in self.job_location:
             self.job_search_query = self.job_search_query + '+' + word
 
-        options = Options()
-        options.headless = True
-        self.driver = webdriver.Chrome(options=options, executable_path=r'chromedriver')
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("start-maximized")
+        chrome_options.add_argument("window-size=1920,1080")
+        user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
+        chrome_options.add_argument(f'user-agent={user_agent}')
+        self.driver = webdriver.Chrome(executable_path="chromedriver", options=chrome_options)
+        time.sleep(5)
         self.URL = 'https://www.google.com/search?q=' + self.job_search_query + '&oq=' + self.job_search_query + '&aqs=chrome.0.69i59j69i57j0i512l3j69i60j69i61j69i60.2372j0j4&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwiSnLaS4vD6AhXASkEAHbGeCmIQutcGKAF6BAgPEAY&sxsrf=ALiCzsYBgFpn29JiT-bmDitHpZhnSS8_KA:1666336217212#fpstate=tldetail&htivrt=jobs&htidocid=yMtX4QFL-SgAAAAAAAAAAA%3D%3D'
         self.driver.get(self.URL)
 
