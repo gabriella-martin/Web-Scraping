@@ -2,7 +2,7 @@ from openpyxl import Workbook
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-
+from webdriver_manager.chrome import ChromeDriverManager
 import pickle
 import time
 
@@ -41,7 +41,7 @@ class Scraper():
         chrome_options.add_argument("window-size=1920,1080")
         user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
         chrome_options.add_argument(f'user-agent={user_agent}')
-        self.driver = webdriver.Chrome(executable_path="chromedriver", options=chrome_options)
+        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
         time.sleep(5)
         self.URL = 'https://www.google.com/search?q=' + self.job_search_query + '&oq=' + self.job_search_query + '&aqs=chrome.0.69i59j69i57j0i512l3j69i60j69i61j69i60.2372j0j4&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwiSnLaS4vD6AhXASkEAHbGeCmIQutcGKAF6BAgPEAY&sxsrf=ALiCzsYBgFpn29JiT-bmDitHpZhnSS8_KA:1666336217212#fpstate=tldetail&htivrt=jobs&htidocid=yMtX4QFL-SgAAAAAAAAAAA%3D%3D'
         self.driver.get(self.URL)
@@ -71,17 +71,17 @@ class Scraper():
         all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
         for i in all_job_postings:
                 self.driver.execute_script("arguments[0].scrollIntoView();", i)   
-                time.sleep(0.5)
+                time.sleep(1)
         
         all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
         for i in all_job_postings:
                 self.driver.execute_script("arguments[0].scrollIntoView();", i)
-                time.sleep(0.5)
+                time.sleep(1)
 
         all_job_postings.reverse()
         for i in all_job_postings:
             self.driver.execute_script("arguments[0].scrollIntoView();", i)
-            time.sleep(0.5)
+            time.sleep(1)
 
     def get_job_info(self):
 
@@ -364,10 +364,9 @@ a.scrape()
 
 b = DataProcessing()
 b.sort_data()
-'''
+
 c = DataAnalysis()
 c.analyse_data()
-'''
 
 
 
