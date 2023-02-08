@@ -6,7 +6,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import pickle
 import time
 
-
+#conda activate /opt/miniconda3/envs/Web_Scraping
 
 class Scraper():
 
@@ -62,8 +62,8 @@ class Scraper():
         location_button = self.driver.find_element(by=By.XPATH, value = '//span[@jsname="ZwfL4c" and @class="cS4btb is1c5b" and @data-facet="city"]')
         location_button.click()
         time.sleep(2)
-
-        miles_specified = self.driver.find_element(by=By.XPATH, value = '//div[@data-display-value="' + self.job_radius + ' mi"]')
+        miles_string = ' mi'
+        miles_specified = self.driver.find_element(by=By.XPATH, value = f'//div[@data-display-value="{self.job_radius}{miles_string}"]')
         miles_specified.click()
     
     def scroll_to_load(self):
