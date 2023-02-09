@@ -7,12 +7,23 @@ import pickle
 import time
 
 #conda activate /opt/miniconda3/envs/Web_Scraping
+def get_search_query():
+    job_search = input('What jobs would you like to search for? ').split()
+    job_location = input('What location would you like to search in? ').split()
+    while True:
+        job_radius = input('What radius would you like to search with (miles), input either 2, 5, 15, 30, 60 or 200 ')
+        accepted_radii = ['2','5','15','30','60','200']
+        if job_radius in accepted_radii:
+            break
+        else:
+            print('Please enter either 2, 5, 15, 30, 60 or 200')
+            continue
 
-class Scraper():
+class Scraper( ):
 
     '''This is a class used to scrape information of the google jobs website'''
 
-    def __init__(self):
+    def __init__(self, job_search, job_location, job_radius ):
 
         '''First we initialise all the information lists we want to retrieve,
         then we ask the user to specify their search query following the options allowed on Google jobs
@@ -23,16 +34,14 @@ class Scraper():
         self.job_info_formatted = []
         self.job_description = []
         self.job_links = []
-
         self.job_search_query = ''
-        self.job_search = input('What jobs would you like to search for? ').split()
-        self.job_location = input('What location would you like to search in? ').split()
-        self.job_radius = input('What radius would you like to search with (miles), input either 2, 5, 15, 30, 60 or 200 ')
-
-        for word in self.job_search:
+        self.job_search = job_search
+        self.job_location = job_location
+        self.job_radius = job_radius
+        for word in job_search:
             self.job_search_query = self.job_search_query + '+' + word
 
-        for word in self.job_location:
+        for word in job_location:
             self.job_search_query = self.job_search_query + '+' + word
 
         chrome_options = Options()
@@ -46,42 +55,54 @@ class Scraper():
         self.URL = 'https://www.google.com/search?q=' + self.job_search_query + '&oq=' + self.job_search_query + '&aqs=chrome.0.69i59j69i57j0i512l3j69i60j69i61j69i60.2372j0j4&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwiSnLaS4vD6AhXASkEAHbGeCmIQutcGKAF6BAgPEAY&sxsrf=ALiCzsYBgFpn29JiT-bmDitHpZhnSS8_KA:1666336217212#fpstate=tldetail&htivrt=jobs&htidocid=yMtX4QFL-SgAAAAAAAAAAA%3D%3D'
         self.driver.get(self.URL)
 
-    def accept_cookies(self):
-        
-        '''this function locates and clicks the accept cookies button'''
 
-        accept_cookies_button = self.driver.find_element(by=By.XPATH, value ='//button[@aria-label="Accept all"]')
-        accept_cookies_button.click()
-        time.sleep(2)
-        
+    def accept_cookies(self):
+        # accepts the cookies button if present
+        try:
+            accept_cookies_button = self.driver.find_element(by=By.XPATH, value ='//button[@aria-label="Accept all"]')
+            accept_cookies_button.click()
+            return 'Cookies Accepted'
+        except:
+            pass
+            self.driver.implicitly_wait(2)
+            return 'No Cookies To Accept'
+
+     
     def specify_location(self):
 
         '''finds location button and clicks to reveal the radius options, 
         then takes user specified radius and clicks on this option to reveal the specific job postings'''
+        try:
+            location_button = self.driver.find_element(by=By.XPATH, value = '//span[@jsname="ZwfL4c" and @class="cS4btb is1c5b" and @data-facet="city"]')
+            location_button.click()
+            self.driver.implicitly_wait(2)
+            miles_string = ' mi'
+            miles_specified = self.driver.find_element(by=By.XPATH, value = f'//div[@data-display-value="{self.job_radius}{miles_string}"]')
+            miles_specified.click()
+            return 'Location and Radius inputted'
+        except:
+            pass
+            self.driver.quit()
+            print('Please retry changing either job title or location or both, invalid query')
+            return 'Explained fault to user and exited program'
 
-        location_button = self.driver.find_element(by=By.XPATH, value = '//span[@jsname="ZwfL4c" and @class="cS4btb is1c5b" and @data-facet="city"]')
-        location_button.click()
-        time.sleep(2)
-        miles_string = ' mi'
-        miles_specified = self.driver.find_element(by=By.XPATH, value = f'//div[@data-display-value="{self.job_radius}{miles_string}"]')
-        miles_specified.click()
     
     def scroll_to_load(self):
 
         all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
         for i in all_job_postings:
                 self.driver.execute_script("arguments[0].scrollIntoView();", i)   
-                time.sleep(1)
+                self.driver.implicitly_wait(1)
         
         all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
         for i in all_job_postings:
                 self.driver.execute_script("arguments[0].scrollIntoView();", i)
-                time.sleep(1)
+                self.driver.implicitly_wait(1)
 
         all_job_postings.reverse()
         for i in all_job_postings:
             self.driver.execute_script("arguments[0].scrollIntoView();", i)
-            time.sleep(1)
+            self.driver.implicitly_wait(1)
 
     def get_job_info(self):
 
@@ -94,7 +115,7 @@ class Scraper():
         job_info_list = (self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]'))
         time.sleep(10)
         for job in job_info_list:
-            time.sleep(1)
+            self.driver.implicitly_wait(1)
             job_text = job.text.splitlines() 
             self.job_info.append(job_text)
         return self.job_info
@@ -114,7 +135,7 @@ class Scraper():
         for desc_1 in description_part_1:
             first_half_of_description = desc_1.get_attribute('innerText')
             self.job_description.append(first_half_of_description)
-            time.sleep(0.5)
+            self.driver.implicitly_wait(0.5)
 
         first_job_exception_locator = self.driver.find_elements(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
         if len(first_job_exception_locator) != 0:
@@ -358,15 +379,16 @@ class DataAnalysis():
         self.order_dictionary(dictionary_of_skills_and_percentages)
 
     
-
+'''
 a = Scraper()
-a.scrape()
-
+a.accept_cookies()
+a.specify_location()'''
+'''
 b = DataProcessing()
 b.sort_data()
 
 c = DataAnalysis()
 c.analyse_data()
-
+'''
 
 
