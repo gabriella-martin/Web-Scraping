@@ -47,7 +47,7 @@ class Scraper():
         self.driver.get(self.URL)
 
     def accept_cookies(self):
-
+        
         '''this function locates and clicks the accept cookies button'''
 
         accept_cookies_button = self.driver.find_element(by=By.XPATH, value ='//button[@aria-label="Accept all"]')
