@@ -1,7 +1,6 @@
 import argparse
 import pickle
 
-
 from openpyxl import Workbook
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -11,31 +10,29 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # QUESTION: Is this okay to have this out here or is there a nicer way to include this
 
-parser = argparse.ArgumentParser(description='Specify your job search query')
-parser.add_argument('JobTitle', type=str, help ='What jobs do you want to search for', default='Developer')
-parser.add_argument('Location', type=str, help='What location would you like to search in?', default='London')
-parser.add_argument('Radius', type=int, help='What radius would you like to search with (mi)? 2, 5, 15, 30, 60 or 200', default=2)
-args = parser.parse_args()
+def get_search_query():
+    parser = argparse.ArgumentParser(description='Specify your job search query')
+    parser.add_argument('JobTitle', type=str, help ='What jobs do you want to search for', default='Developer')
+    parser.add_argument('Location', type=str, help='What location would you like to search in?', default='London')
+    parser.add_argument('Radius', type=int, help='What radius would you like to search with (mi)? 2, 5, 15, 30, 60 or 200', default=2)
+    args = parser.parse_args()
+    job_title_query = (args.JobTitle).split() 
+    location_query = (args.Location).split()
+    radius = args.Radius
+    search_query = ''
+    for word in job_title_query:
+        search_query = search_query + '+' + word
+    for word in location_query:
+        search_query = search_query + '+' + word
+    return search_query, radius
 
-job_title_query = (args.JobTitle).split() 
-location_query = (args.Location).split()
-radius = args.Radius
-
-search_query = ''
-
-for word in job_title_query:
-    search_query = search_query + '+' + word
-
-for word in location_query:
-    search_query = search_query + '+' + word
-
+arguments = get_search_query()
 
 class Scraper():
 
     # DOCSTRING
 
-    def __init__(self,search_query, radius):
-
+    def __init__(self,search_query=arguments[0], radius=arguments[1]):
         # DOCSTRING
         self.radius = radius
         self.search_query = search_query
@@ -153,5 +150,4 @@ class Scraper():
             with open(f'list_{index}', 'wb') as li:
                 pickle.dump(list_item, li)
 
-a = Scraper(search_query, radius)
-a._pickle_lists()
+
