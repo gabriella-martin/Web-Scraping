@@ -1,14 +1,12 @@
 import argparse
 import pickle
-
+import time
 from openpyxl import Workbook
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 
-
-# QUESTION: Is this okay to have this out here or is there a nicer way to include this
 
 def get_search_query():
     parser = argparse.ArgumentParser(description='Specify your job search query')
@@ -30,8 +28,6 @@ arguments = get_search_query()
 
 class Scraper():
 
-    # DOCSTRING
-
     def __init__(self,search_query=arguments[0], radius=arguments[1]):
         # DOCSTRING
         self.radius = radius
@@ -44,11 +40,10 @@ class Scraper():
         user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36'
         chrome_options.add_argument(f'user-agent={user_agent}')
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
-        self.driver.implicitly_wait(1)
+        time.sleep(1)
         self.driver.get(self.url)
 
     def _accept_cookies(self):
-        # DOCSTRING
         try:
             accept_cookies_button = self.driver.find_element(by=By.XPATH, value ='//button[@aria-label="Accept all"]')
             accept_cookies_button.click()
@@ -56,13 +51,10 @@ class Scraper():
             pass
 
     def _specify_location(self):
-        # DOCSTRING
         try:
             location_button = self.driver.find_element(by=By.XPATH, value = '//span[@jsname="ZwfL4c" and @class="cS4btb is1c5b" and @data-facet="city"]')
             location_button.click()
-
-            self.driver.implicitly_wait(1)
-
+            time.sleep(1)
             miles_string = ' mi'
             miles_specified = self.driver.find_element(by=By.XPATH, value = f'//div[@data-display-value="{self.radius}{miles_string}"]')
             miles_specified.click()
@@ -70,39 +62,36 @@ class Scraper():
             pass
 
     def _scroll_to_load(self):
-        # DOCSTRING
-        all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
-        for i in all_job_postings:
-                self.driver.execute_script("arguments[0].scrollIntoView();", i)   
-                self.driver.implicitly_wait(1)
-        all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
-        for i in all_job_postings:
-                self.driver.execute_script("arguments[0].scrollIntoView();", i)
-                self.driver.implicitly_wait(1)
+        for num in range(0,5):
+            all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
+            for i in all_job_postings:
+                    self.driver.execute_script("arguments[0].scrollIntoView();", i)   
+                    time.sleep(1)
+
         all_job_postings.reverse()
-        for i in all_job_postings:
-            self.driver.execute_script("arguments[0].scrollIntoView();", i)
-            self.driver.implicitly_wait(1)
+        for num in range(0,5):
+            for i in all_job_postings:
+                self.driver.execute_script("arguments[0].scrollIntoView();", i)
+                time.sleep(1)
 
     def get_job_info(self):
-        # DOCSTRING
         job_infos = []
         job_info_list = (self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]'))
-        self.driver.implicitly_wait(5)
+        time.sleep(2)
         for job in job_info_list:
-            self.driver.implicitly_wait(1)
+            time.sleep(1)
             job_text = job.text.splitlines() 
             job_infos.append(job_text)
         return job_infos
 
     def get_description(self):
-        # DOCSTRING
+
         job_descriptions = []
         description_part_1 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="HBvzbc"]')
         for desc_1 in description_part_1:
             first_half_of_description = desc_1.get_attribute('innerText')
             job_descriptions.append(first_half_of_description)
-            self.driver.implicitly_wait(0.5)
+            time.sleep(0.5)
 
         first_job_exception_locator = self.driver.find_elements(by=By.XPATH, value = '/html/body/div[2]/div/div[2]/div[1]/div/div/div[3]/div[2]/div/div[1]/div/div/div[4]/div/span/span[2]')
         if len(first_job_exception_locator) != 0:
@@ -119,7 +108,7 @@ class Scraper():
         return(job_descriptions)
 
     def get_links(self):
-        # DOCSTRING
+
         job_links = []
         find_link_location = self.driver.find_elements(by=By.XPATH, value = '//span[@class="DaDV9e"]')
         for location in find_link_location:
@@ -129,25 +118,27 @@ class Scraper():
         return(job_links) 
 
     def run_scraper(self):
-        # DOCSTRING
+
         self._accept_cookies()
-        self.driver.implicitly_wait(5)
+        time.sleep(2)
         self._specify_location
-        self.driver.implicitly_wait(10)
+        time.sleep(7)
         self._scroll_to_load()
-        self.driver.implicitly_wait(5)
+        time.sleep(2)
         job_infos = self.get_job_info()
-        print(job_infos[0])
         job_descriptions = self.get_description()
         job_links = self.get_links()
         lists_to_be_pickled = [job_infos, job_descriptions, job_links]
         return lists_to_be_pickled
 
     def _pickle_lists(self):
-        # DOCSTRING
+ 
         lists_to_be_pickled = self.run_scraper()
         for index, list_item in enumerate(lists_to_be_pickled):
             with open(f'list_{index}', 'wb') as li:
                 pickle.dump(list_item, li)
 
 
+if __name__ == '__main__':
+    s = Scraper()
+    s._pickle_lists()
