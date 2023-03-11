@@ -1,14 +1,26 @@
 import argparse
 import pickle
 import time
-from openpyxl import Workbook
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 
-
 def get_search_query():
+
+    """Get the job search query with specified parameters.
+
+    Args:
+        JobTitle (str): The job title that you want to search for.
+        Location (str): The location that you want to search in.
+        Radius (int): The search radius in miles, can be 2, 5, 15, 30, 60, or 200.
+
+    Returns:
+        tuple: A tuple containing the search query string and the specified radius.
+        The search query string is formatted as 'JobTitle+Location', where both JobTitle and Location
+        are the specified parameters with whitespace replaced by '+'.
+        """
+    
     parser = argparse.ArgumentParser(description='Specify your job search query')
     parser.add_argument('JobTitle', type=str, help ='What jobs do you want to search for', default='Developer')
     parser.add_argument('Location', type=str, help='What location would you like to search in?', default='London')
@@ -28,8 +40,23 @@ arguments = get_search_query()
 
 class Scraper():
 
+    """A web scraper for job postings on Google search.
+
+    Args:
+        search_query (str): The search query to be used for job postings.
+        radius (int): The radius in miles to be used to filter job postings based on location.
+
+    Attributes:
+        search_query (str): The search query to be used for job postings.
+        radius (int): The radius in miles to be used to filter job postings based on location.
+        url (str): The Google URL to be scraped.
+        driver: (object): The Selenium WebDriver object used for web scraping automation.
+        """
+
     def __init__(self,search_query=arguments[0], radius=arguments[1]):
-        # DOCSTRING
+
+        #Initializes a Scraper object with specified search query and radius, sets up the WebDriver, and loads the URL
+
         self.radius = radius
         self.search_query = search_query
         self.url = 'https://www.google.com/search?q=' + self.search_query + '&oq=' + self.search_query + '&aqs=chrome.0.69i59j69i57j0i512l3j69i60j69i61j69i60.2372j0j4&sourceid=chrome&ie=UTF-8&ibp=htl;jobs&sa=X&ved=2ahUKEwiSnLaS4vD6AhXASkEAHbGeCmIQutcGKAF6BAgPEAY&sxsrf=ALiCzsYBgFpn29JiT-bmDitHpZhnSS8_KA:1666336217212#fpstate=tldetail&htivrt=jobs&htidocid=yMtX4QFL-SgAAAAAAAAAAA%3D%3D'
@@ -44,6 +71,9 @@ class Scraper():
         self.driver.get(self.url)
 
     def _accept_cookies(self):
+
+        #Finds and clicks the "Accept all" button for cookies, if present.
+
         try:
             accept_cookies_button = self.driver.find_element(by=By.XPATH, value ='//button[@aria-label="Accept all"]')
             accept_cookies_button.click()
@@ -51,6 +81,9 @@ class Scraper():
             pass
 
     def _specify_location(self):
+
+        #Finds and clicks the location button, selects the specified radius, and applies the filter to job postings
+
         try:
             location_button = self.driver.find_element(by=By.XPATH, value = '//span[@jsname="ZwfL4c" and @class="cS4btb is1c5b" and @data-facet="city"]')
             location_button.click()
@@ -62,6 +95,9 @@ class Scraper():
             pass
 
     def _scroll_to_load(self):
+
+        #Scrolls down the page multiple times to load all job postings dynamically.
+
         for num in range(0,5):
             all_job_postings = self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]')
             for i in all_job_postings:
@@ -75,6 +111,9 @@ class Scraper():
                 time.sleep(1)
 
     def get_job_info(self):
+
+        #Returns a list of lists containing job information, such as job title, company name, and location.
+
         job_infos = []
         job_info_list = (self.driver.find_elements(by=By.XPATH, value = '//div[@class="PwjeAc"]'))
         time.sleep(2)
@@ -85,6 +124,8 @@ class Scraper():
         return job_infos
 
     def get_description(self):
+
+        #Returns a list of job descriptions corresponding to each job posting.
 
         job_descriptions = []
         description_part_1 = self.driver.find_elements(by=By.XPATH, value = '//span[@class="HBvzbc"]')
@@ -109,6 +150,8 @@ class Scraper():
 
     def get_links(self):
 
+        #Returns a list of links corresponding to each job posting.
+
         job_links = []
         find_link_location = self.driver.find_elements(by=By.XPATH, value = '//span[@class="DaDV9e"]')
         for location in find_link_location:
@@ -118,6 +161,8 @@ class Scraper():
         return(job_links) 
 
     def run_scraper(self):
+
+        #Calls the above methods to automate the process of web scraping for job postings.
 
         self._accept_cookies()
         time.sleep(2)
@@ -129,9 +174,12 @@ class Scraper():
         job_descriptions = self.get_description()
         job_links = self.get_links()
         lists_to_be_pickled = [job_infos, job_descriptions, job_links]
+        
         return lists_to_be_pickled
 
     def _pickle_lists(self):
+
+        #Runs the entire process and then pickles the results to be used in the rest of the program
  
         lists_to_be_pickled = self.run_scraper()
         for index, list_item in enumerate(lists_to_be_pickled):
