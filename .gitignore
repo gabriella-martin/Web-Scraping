@@ -2,3 +2,10 @@ des_list
 info_list
 link_list
 full_info_list
+list_0
+list_1
+list_2
+__pycache__
+dist 
+google_jobs_scraping.egg-info
+.DS_Store
