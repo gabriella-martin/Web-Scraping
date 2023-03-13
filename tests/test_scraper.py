@@ -1,8 +1,7 @@
+import sys
 import unittest 
-from Scraper import *
-
-# how to test with args parse?
-
+sys.path.insert(1, '/Users/gabriellamartin/Web Scraping' )
+from project.data_scraper import Scraper
 
 class ScraperTestCase(unittest.TestCase):
     def setUp(self):
