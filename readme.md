@@ -1,11 +1,12 @@
 <h2 align="center">Web-Scraping Google Jobs</h2>
 
-**Technologies Used**: Selenium, Python, Git & OpenPyxl
+**Technologies Used**: Selenium, Python, Git, Docker & OpenPyxl
 
 <div align="center">
-	  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/selenium/selenium-original.svg" height="40" width="52"   />
-	  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original-wordmark.svg" height="40" width="52"   />
-	    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" height="40" width="52"  />
+	<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/selenium/selenium-original.svg" height="40" width="52"   />
+	<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original-wordmark.svg" height="40" width="52"   />
+	<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" height="40" width="52"  />
+	<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt="html5" width="40" height="40"/>
 	<img src="https://github.com/sempostma/office365-icons/blob/master/png/64/excel.png?raw=true" alt="html5" width="40" height="40"/>
 
 <h4 align="left">Introduction</h4>
