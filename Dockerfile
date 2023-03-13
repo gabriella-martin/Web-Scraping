@@ -1,7 +1,7 @@
-FROM python:3.10
+FROM python:latest
 
-ADD refactored.py . 
+COPY . . 
 
-RUN pip install selenium openpyxl
+RUN pip install selenium openpyxl webdriver-manager
 
-CMD ["python", "./refactored.py"]
+CMD ["python", "project/__main__.py"]
