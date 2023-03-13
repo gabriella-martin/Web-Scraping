@@ -38,7 +38,7 @@ class DataAnalysis():
         By specifying that the count must be >1 we remove any arbitrary skill searches from our final list.
         Each sucessful search query and corresponding percentage of prominance is added to a list'''
 
-        skill_query = []
+        skill_queries = []
         percentages_of_skills = []
 
         while True:
@@ -53,10 +53,10 @@ class DataAnalysis():
                         count += 1
                 if count > 1:
                     percentage_of_skill = round((count/len(list_of_descriptions))*100)
-                    skill_query.append(skill_query)
+                    skill_queries.append(skill_query)
                     percentages_of_skills.append(percentage_of_skill)
 
-        return(skill_query, percentages_of_skills)
+        return(skill_queries, percentages_of_skills)
 
     def make_skill_dictionary(self, skills_and_percentages):
 
